@@ -1,24 +1,29 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { log } from "./vite.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
 // CORS configuration for external server
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
+
   // Allow requests from any origin in production for external server
   if (process.env.NODE_ENV === 'production') {
     res.header('Access-Control-Allow-Origin', origin || '*');
   } else {
     res.header('Access-Control-Allow-Origin', origin || 'http://localhost:3000');
   }
-  
+
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
   } else {
@@ -70,13 +75,18 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  // setup vite in development or serve static files in production
+  if (process.env.NODE_ENV === "development") {
+    const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // Serve static files in production
+    app.use(express.static(path.resolve(__dirname, "..", "dist", "public")));
+
+    // Serve React app for all other routes
+    app.get("*", (req, res) => {
+      res.sendFile(path.resolve(__dirname, "..", "dist", "public", "index.html"));
+    });
   }
 
   // Use environment variable for port or default to 8888 for external server
