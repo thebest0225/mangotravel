@@ -1,32 +1,33 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+
+import { mysqlTable, text, int, boolean, timestamp, json } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const travelPlans = pgTable("travel_plans", {
-  id: serial("id").primaryKey(),
+export const travelPlans = mysqlTable("travel_plans", {
+  id: int("id").primaryKey().autoincrement(),
   title: text("title").notNull(),
   startDate: text("start_date").notNull(),
   endDate: text("end_date").notNull(),
-  participants: jsonb("participants").notNull().default([]), // array of selected participants
+  participants: json("participants").notNull().default([]), // array of selected participants
   status: text("status").notNull().default("planning"), // planning, active, completed
   transportType: text("transport_type").notNull().default("car"), // car, flight, ship, train
-  flightInfo: jsonb("flight_info"),
-  essentialItems: jsonb("essential_items").default([]),
+  flightInfo: json("flight_info"),
+  essentialItems: json("essential_items").default([]),
 });
 
-export const scheduleItems = pgTable("schedule_items", {
-  id: serial("id").primaryKey(),
-  planId: integer("plan_id").notNull(),
+export const scheduleItems = mysqlTable("schedule_items", {
+  id: int("id").primaryKey().autoincrement(),
+  planId: int("plan_id").notNull(),
   date: text("date").notNull(),
   time: text("time").notNull(),
   title: text("title").notNull(),
   location: text("location"),
   memo: text("memo"),
-  order: integer("order").notNull().default(0),
+  order: int("order").notNull().default(0),
 });
 
-export const savedPlaces = pgTable("saved_places", {
-  id: serial("id").primaryKey(),
+export const savedPlaces = mysqlTable("saved_places", {
+  id: int("id").primaryKey().autoincrement(),
   name: text("name").notNull(),
   address: text("address"),
   category: text("category"),
@@ -38,29 +39,29 @@ export const savedPlaces = pgTable("saved_places", {
   country: text("country"), // 국가
   region: text("region"), // 도/현/주
   city: text("city"), // 시/구
-  placeTypes: jsonb("place_types").default([]), // Google Places API types
-  photos: jsonb("photos").default([]), // 사진 URL 배열
-  openingHours: jsonb("opening_hours"), // 영업시간 정보
+  placeTypes: json("place_types").default([]), // Google Places API types
+  photos: json("photos").default([]), // 사진 URL 배열
+  openingHours: json("opening_hours"), // 영업시간 정보
   website: text("website"), // 웹사이트 URL
-  links: jsonb("links").default([]), // 관련 링크 배열 (제목, URL)
+  links: json("links").default([]), // 관련 링크 배열 (제목, URL)
   phoneNumber: text("phone_number"), // 전화번호
   customLabel: text("custom_label"), // 사용자 지정 라벨
-  labelId: integer("label_id"), // 위치 라벨 ID (locationLabels 테이블 참조)
+  labelId: int("label_id"), // 위치 라벨 ID (locationLabels 테이블 참조)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // 사용자 및 인증 테이블
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+export const users = mysqlTable("users", {
+  id: int("id").primaryKey().autoincrement(),
   name: text("name").notNull(),
   password: text("password").notNull(),
-  role: integer("role").notNull().default(3), // 1=슈퍼관리자, 2=일반관리자, 3=일반참가자
+  role: int("role").notNull().default(3), // 1=슈퍼관리자, 2=일반관리자, 3=일반참가자
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // 위치 라벨 관리 테이블
-export const locationLabels = pgTable("location_labels", {
-  id: serial("id").primaryKey(),
+export const locationLabels = mysqlTable("location_labels", {
+  id: int("id").primaryKey().autoincrement(),
   name: text("name").notNull(),
   color: text("color").default("#3B82F6"), // 라벨 색상
   createdAt: timestamp("created_at").defaultNow(),
