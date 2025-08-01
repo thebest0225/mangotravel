@@ -75,15 +75,18 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // setup vite in development or serve static files in production
+  // Conditional import for vite (development only)
+  let setupVite: any = null;
   if (process.env.NODE_ENV === "development") {
-    const { setupVite } = await import("./vite.js");
+    setupVite = (await import("./vite.js")).setupVite;
+  }
+
+  // setup vite in development or serve static files in production
+  if (app.get("env") === "development" && setupVite) {
     await setupVite(app, server);
   } else {
-    // Serve static files in production
     app.use(express.static(path.resolve(__dirname, "..", "dist", "public")));
 
-    // Serve React app for all other routes
     app.get("*", (req, res) => {
       res.sendFile(path.resolve(__dirname, "..", "dist", "public", "index.html"));
     });
